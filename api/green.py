@@ -50,32 +50,35 @@ class handler(BaseHTTPRequestHandler):
             return f"<p>{t['noData']}</p>"
 
         headers = [th.get_text(strip=True) for th in table.find_all("th")]
-        months = headers[1:]
+months = headers[1:]
 
-        sections_for_all = []
-        for area in TARGET_AREAS:
-            cells = []
-            for row in table.find_all("tr"):
-                tds = row.find_all("td")
-                if tds and area in tds[0].get_text(strip=True):
-                    cells = [td.get_text(strip=True) for td in tds[1:]]
-                    break
+sections_for_all = []
+for area in TARGET_AREAS:
+    cells = []
+    for row in table.find_all("tr"):
+        tds = row.find_all("td")
+        if tds and area in tds[0].get_text(strip=True):
+            cells = [td.get_text(strip=True) for td in tds[1:]]
+            break
 
-            if cells:
-                month_sections = []
-                for month, dates_str in zip(months, cells):
-                    dates = [d.strip() for d in dates_str.split(",") if d.strip()]
-                    lis = "\n".join(
-                        f'<li><i class="fas fa-calendar-day"></i> {d}</li>' for d in dates
-                    ) or "<li>-</li>"
-                    month_sections.append(f"<h3>{month}</h3>\n<ul>{lis}</ul>")
-                section_html = f"<h2>{area}</h2>" + "\n".join(month_sections)
-            else:
-                section_html = f"<h2>{area}</h2><p>{t['noData']}</p>"
+    if cells:
+        month_sections = []
+        for month, dates_str in zip(months, cells):
+            # Translate month if possible
+            month_label = t["months"].get(month, month)
 
-            sections_for_all.append(section_html)
+            dates = [d.strip() for d in dates_str.split(",") if d.strip()]
+            lis = "\n".join(
+                f'<li><i class="fas fa-calendar-day"></i> {d}</li>' for d in dates
+            ) or "<li>-</li>"
+            month_sections.append(f"<h3>{month_label}</h3>\n<ul>{lis}</ul>")
+        section_html = f"<h2>{area}</h2>" + "\n".join(month_sections)
+    else:
+        section_html = f"<h2>{area}</h2><p>{t['noData']}</p>"
 
-        content = "\n<hr/>\n".join(sections_for_all)
+    sections_for_all.append(section_html)
+
+content = "\n<hr/>\n".join(sections_for_all)
 
         # --- Styled bilingual HTML ---
         return f"""<!DOCTYPE html>
