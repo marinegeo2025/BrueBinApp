@@ -1,0 +1,211 @@
+/* General Page Styles */
+body {
+  margin: 0;
+  padding: 30px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  text-align: center;
+}
+
+/* Default background */
+body {
+  background: #f7f7f7;
+}
+
+/* Page-specific themes */
+body.black-page {
+  background: #f7f9fc; /* soft grey background */
+}
+body.blue-page {
+  background: #f0f8ff; /* AliceBlue */
+}
+body.green-page {
+  background: #e0ffe0; /* pale green */
+}
+
+.container {
+  max-width: 600px;
+  margin: 20px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  font-size: 24px;
+  color: #067f0b;
+  margin-bottom: 15px;
+}
+h2 {
+  font-size: 18px;
+  color: #444;
+  margin: 15px 0;
+}
+h3 {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+.villages {
+  font-size: 12px;
+  font-style: italic;
+  color: #666;
+}
+
+/* Bin Buttons + Banners */
+.bin-list {
+  list-style: none;
+  padding: 0;
+}
+
+.bin-link,
+.bin-link:visited {
+  display: flex;                /* use flexbox */
+  flex-direction: row;          /* icon + text side by side */
+  align-items: center;          /* vertical centering */
+  justify-content: center;      /* horizontal centering */
+
+  margin: 10px;
+  padding: 15px;
+  font-size: 22px;
+  font-weight: 600;
+  text-decoration: none;
+  color: #ffffff;
+  border-radius: 8px;
+  transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+  min-height: 100px;
+  background-size: cover;
+  background-position: center center;
+  position: relative;
+  overflow: hidden;
+}
+.icon {
+  margin-right: 10px;
+}
+
+.bin-link:hover {
+  transform: scale(1.05);
+}
+
+.bin-link * {
+  color: #ffffff;
+  position: relative;
+  z-index: 1;
+}
+
+/* Bin Button Colours */
+.btn-black { background-color: #343a40; }
+.btn-blue { background-color: #007bff; }
+.btn-green { background-color: #28a745; }
+
+/* Banner Images */
+.north-bin-link { background-image: url("/images/north-ness.jpeg"); }
+.south-bin-link { background-image: url("/images/south-ness.jpeg"); }
+
+.subtext {
+  font-size: 0.75em;
+  font-weight: normal;
+}
+
+.credit {
+  font-size: 11px;
+  margin-top: 20px;
+}
+
+.cute-text {
+  color: #067f0b;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Heartbeat Animation */
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+.heart {
+  display: inline-block;
+  animation: heartbeat 1s infinite;
+}
+
+/* Scraper page list items */
+ul { list-style: none; padding: 0; }
+li {
+  background: #eef3f7;
+  margin: 6px 0;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 1rem;
+  text-align: center;
+}
+
+/* Ensure Font Awesome icons use their own font */
+i {
+  font-family: "Font Awesome 6 Free" !important;
+  font-weight: 900;
+}
+/* Themed page heading colors */
+body.black-page h1 {
+  color: #343a40; /* black bin */
+}
+
+body.blue-page h1 {
+  color: #007bff; /* blue bin */
+}
+
+body.green-page h1 {
+  color: #28a745; /* green bin */
+}
+/* Only shrink the top 3 bin buttons */
+.bin-button {
+  min-height: 70px;      /* was ~100px */
+  padding: 12px 15px;    /* less padding */
+  font-size: 18px;       /* slightly smaller text */
+}
+
+.bin-button .icon {
+  font-size: 20px;       /* scale icons down a touch */
+  margin-right: 8px;
+}
+/* Header row with centered title and right button */
+.header-row {
+  display: flex;
+  justify-content: space-between; /* title left, button right */
+  align-items: flex-start;          /* align bottoms of text + button */
+  margin-bottom: 20px;
+  position: relative;             /* keep items inside container */
+}
+
+.header-row h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #067f0b;
+  text-align: left;
+  flex: 1;
+}
+
+/* Button sits inside flex, not absolute */
+.lang-toggle {
+  margin-left: 20px
+  align-self: flex-start;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background: #067f0b;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;
+  box-shadow: 0px 3px 6px rgba(0,0,0,0.25);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.lang-toggle:hover {
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.35);
+  transform: translateY(-2px); /* subtle lift on hover */
+}
