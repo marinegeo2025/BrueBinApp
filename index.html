@@ -3,15 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bin Collection Schedules</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
-      rel="stylesheet"
-    />
+    <title>Brue Bin Collection Dates</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
     <style>
       body {
         font-family: "Poppins", sans-serif;
@@ -33,17 +27,17 @@
         max-width: 350px;
         width: 100%;
       }
-      h1 {
-        font-size: 22px;
-        color: #222;
-        margin-bottom: 10px;
-      }
-      p {
+      h1 { font-size: 22px; color: #222; margin-bottom: 10px; }
+      .lang-toggle {
+        margin-top: 10px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: none;
+        background: #067f0b;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
         font-size: 14px;
-        color: #555;
-      }
-      .link-box {
-        margin: 15px 0;
       }
       .link-box a {
         display: block;
@@ -57,52 +51,38 @@
         font-weight: 600;
         transition: 0.3s;
       }
-      .link-box a:hover {
-        background: #025a02;
-      }
-      .black-bin {
-        background: #222 !important;
-      }
-      .black-bin:hover {
-        background: #111 !important;
-      }
-      .blue-bin {
-        background: #007bff !important;
-      }
-      .blue-bin:hover {
-        background: #0056b3 !important;
-      }
-      .green-bin {
-        background: #028a02 !important;
-      }
-      .green-bin:hover {
-        background: #026702 !important;
-      }
-      .credits {
-        font-size: 12px;
-        color: #777;
-        margin-top: 15px;
-      }
     </style>
+    <script>
+      // Language preference stored in localStorage
+      function setLang(lang) {
+        localStorage.setItem("lang", lang);
+        location.reload();
+      }
+      function getLang() {
+        return localStorage.getItem("lang") || "gd"; // default Gaelic
+      }
+      function init() {
+        const lang = getLang();
+        document.getElementById("black-link").href = "/api/black?lang=" + lang;
+        document.getElementById("blue-link").href  = "/api/blue?lang=" + lang;
+        document.getElementById("green-link").href = "/api/green?lang=" + lang;
+        // toggle button
+        const toggleBtn = document.getElementById("lang-toggle");
+        toggleBtn.textContent = lang === "gd" ? "English" : "Gàidhlig";
+        toggleBtn.onclick = () => setLang(lang === "gd" ? "en" : "gd");
+      }
+      window.onload = init;
+    </script>
   </head>
   <body>
     <div class="container">
-      <h1>Brue and Barvas Bin Collection Dates</h1>
-      <p>Local Bin Schedule App</p>
-
+      <h1>Brue Bin Collection Dates</h1>
       <div class="link-box">
-        <a href="/api/black" class="black-bin">
-          <i class="fas fa-trash-alt"></i> Black Bin Schedule
-        </a>
-        <a href="/api/blue" class="blue-bin">
-          <i class="fas fa-recycle"></i> Blue Bin Schedule
-        </a>
-        <a href="/api/green" class="green-bin">
-          <i class="fas fa-wine-bottle"></i> Green Bin Schedule
-        </a>
+        <a id="black-link"><i class="fas fa-trash-alt"></i> Black Bin Schedule</a>
+        <a id="blue-link"><i class="fas fa-recycle"></i> Blue Bin Schedule</a>
+        <a id="green-link"><i class="fas fa-wine-bottle"></i> Green Bin Schedule</a>
       </div>
-
-      <p class="credits">Designed by AL Barnard</p>
+      <button id="lang-toggle" class="lang-toggle"></button>
     </div>
   </body>
 </html>
