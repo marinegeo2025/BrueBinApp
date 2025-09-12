@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler
 import requests
 from bs4 import BeautifulSoup
+from lib.failsafe import validate_bin_table   # 👈 import Python failsafe
 
 URL = "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/glass-green-bin-collections/friday-collections"
 TITLE = "GREEN Bin Collection Dates"
@@ -10,7 +11,7 @@ BODY_BG = "#f0f8ea"
 CARD_BG = "#fff"
 LI_BG   = "#dff0d8"
 
-TARGET_AREAS = ["Brue", "Barvas"]  # 👈 we’ll scrape both
+TARGET_AREAS = ["Brue", "Barvas"]  # scrape both
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -21,6 +22,7 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(html.encode("utf-8"))
 
     def render(self):
+        # Fetch
         try:
             r = requests.get(URL, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
             r.raise_for_status()
@@ -28,6 +30,14 @@ class handler(BaseHTTPRequestHandler):
             return f"<p>Error fetching data: {e}</p>"
 
         soup = BeautifulSoup(r.text, "html.parser")
+
+        # 🚨 Run failsafe for both areas before parsing
+        try:
+            validate_bin_table(soup, required_keyword="Brue", expected_months=[])
+            validate_bin_table(soup, required_keyword="Barvas", expected_months=[])
+        except Exception as e:
+            return f"<p>⚠️ Structure changed: {e}</p>"
+
         table = soup.find("table")
         if not table:
             return "<p>Could not find bin collection information on the page.</p>"
@@ -36,7 +46,6 @@ class handler(BaseHTTPRequestHandler):
         months = headers[1:]
 
         sections_for_all = []
-        # Loop over both Brue and Barvas
         for area in TARGET_AREAS:
             cells = []
             for row in table.find_all("tr"):
@@ -49,7 +58,9 @@ class handler(BaseHTTPRequestHandler):
                 month_sections = []
                 for month, dates_str in zip(months, cells):
                     dates = [d.strip() for d in dates_str.split(",") if d.strip()]
-                    lis = "\n".join(f'<li><i class="fas fa-calendar-day"></i> {d}</li>' for d in dates) or "<li>-</li>"
+                    lis = "\n".join(
+                        f'<li><i class="fas fa-calendar-day"></i> {d}</li>' for d in dates
+                    ) or "<li>-</li>"
                     month_sections.append(f"<h3>{month}</h3>\n<ul>{lis}</ul>")
                 section_html = f"<h2>{area}</h2>" + "\n".join(month_sections)
             else:
