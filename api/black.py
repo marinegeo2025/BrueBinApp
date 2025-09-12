@@ -48,28 +48,31 @@ class handler(BaseHTTPRequestHandler):
             return f"<p>{t['noData']}</p>"
 
         headers = [th.get_text(strip=True) for th in table.find_all("th")]
-        months = headers[1:]
+months = headers[1:]
 
-        # --- Find Brue row ---
-        cells_for_brue = []
-        for row in table.find_all("tr"):
-            tds = row.find_all("td")
-            if tds and "Brue" in tds[0].get_text(strip=True):
-                cells_for_brue = [td.get_text(strip=True) for td in tds[1:]]
-                break
+# --- Find Brue row ---
+cells_for_brue = []
+for row in table.find_all("tr"):
+    tds = row.find_all("td")
+    if tds and "Brue" in tds[0].get_text(strip=True):
+        cells_for_brue = [td.get_text(strip=True) for td in tds[1:]]
+        break
 
-        # --- Build month sections ---
-        if cells_for_brue:
-            sections = []
-            for month, dates_str in zip(months, cells_for_brue):
-                dates = [d.strip() for d in dates_str.split(",") if d.strip()]
-                lis = "\n".join(
-                    f'<li><i class="fas fa-calendar-day"></i> {d}</li>' for d in dates
-                ) or "<li>-</li>"
-                sections.append(f"<h2>{month}</h2>\n<ul>{lis}</ul>")
-            content = "\n".join(sections)
-        else:
-            content = f"<p>{t['noData']}</p>"
+# --- Build month sections ---
+if cells_for_brue:
+    sections = []
+    for month, dates_str in zip(months, cells_for_brue):
+        # translate month if possible
+        month_label = t["months"].get(month, month)
+
+        dates = [d.strip() for d in dates_str.split(",") if d.strip()]
+        lis = "\n".join(
+            f'<li><i class="fas fa-calendar-day"></i> {d}</li>' for d in dates
+        ) or "<li>-</li>"
+        sections.append(f"<h2>{month_label}</h2>\n<ul>{lis}</ul>")
+    content = "\n".join(sections)
+else:
+    content = f"<p>{t['noData']}</p>"
 
         # --- Styled HTML (no toggle here, just back link with lang) ---
         return f"""<!DOCTYPE html>
