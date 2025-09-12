@@ -1,10 +1,11 @@
 from http.server import BaseHTTPRequestHandler
 import requests
 from bs4 import BeautifulSoup
-from lib.failsafe import validate_bin_table   # 👈 use Python failsafe
+from lib.failsafe import validate_bin_table
+from lib.translations import translations
+import urllib.parse
 
 URL = "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/non-recyclable-waste-grey-bin-purple-sticker/wednesday-collections"
-TITLE = "BLACK Bin Collection Dates for Brue"
 ICON  = "fa-trash-alt"
 H1_COLOR = "#000"
 BODY_BG = "#f7f9fc"
@@ -20,12 +21,18 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(html.encode("utf-8"))
 
     def render(self):
+        # --- Detect lang param (?lang=en or ?lang=gd, default gd) ---
+        query = urllib.parse.urlparse(self.path).query
+        params = dict(qc.split("=") for qc in query.split("&") if "=" in qc)
+        lang = params.get("lang", "gd")
+        t = translations["en"] if lang == "en" else translations["gd"]
+
         # --- Fetch page ---
         try:
             r = requests.get(URL, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
             r.raise_for_status()
         except requests.RequestException as e:
-            return f"<p>Error fetching data: {e}</p>"
+            return f"<p>{t['errorFetching']} {e}</p>"
 
         soup = BeautifulSoup(r.text, "html.parser")
 
@@ -38,10 +45,10 @@ class handler(BaseHTTPRequestHandler):
 
         table = soup.find("table")
         if not table:
-            return "<p>Could not find bin collection information on the page.</p>"
+            return f"<p>{t['noData']}</p>"
 
-        headers = [th.get_text(strip=True) for th in table.find_all("th")]  # Area + months
-        months = headers[1:]  # skip area column
+        headers = [th.get_text(strip=True) for th in table.find_all("th")]
+        months = headers[1:]
 
         # --- Find Brue row ---
         cells_for_brue = []
@@ -62,14 +69,14 @@ class handler(BaseHTTPRequestHandler):
                 sections.append(f"<h2>{month}</h2>\n<ul>{lis}</ul>")
             content = "\n".join(sections)
         else:
-            content = "<p>No bin collection dates found. Try refreshing later.</p>"
+            content = f"<p>{t['noData']}</p>"
 
-        # --- Styled HTML ---
+        # --- Styled HTML with lang toggle ---
         return f"""<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>{TITLE}</title>
+  <title>{t['blackTitle']}</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
@@ -92,13 +99,22 @@ class handler(BaseHTTPRequestHandler):
       font-size: 16px; color: #333; font-weight: 500;
     }}
     .back {{ display:inline-block; margin-top:16px; text-decoration:none; color:#0066cc; }}
+    .lang-toggle {{
+      display:inline-block; margin-top:12px; padding:6px 12px;
+      border:none; border-radius:6px; background:#067f0b; color:#fff;
+      font-weight:bold; cursor:pointer;
+    }}
   </style>
 </head>
 <body>
   <div class="container">
-    <h1><i class="fas {ICON}"></i> {TITLE}</h1>
+    <h1><i class="fas {ICON}"></i> {t['blackTitle']}</h1>
     {content}
-    <a class="back" href="/">← Back</a>
+    <a class="back" href="/?lang={lang}">{t['back']}</a>
+    <br/>
+    <a class="lang-toggle" href="?lang={'en' if lang=='gd' else 'gd'}">
+      {'English' if lang=='gd' else 'Gàidhlig'}
+    </a>
   </div>
 </body>
 </html>"""
