@@ -62,7 +62,7 @@ for row in table.find_all("tr"):
 if cells_for_brue:
     sections = []
     for month, dates_str in zip(months, cells_for_brue):
-        # translate month if possible
+        # Translate month if possible
         month_label = t["months"].get(month, month)
 
         dates = [d.strip() for d in dates_str.split(",") if d.strip()]
