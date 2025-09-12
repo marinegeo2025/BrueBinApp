@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Brue Bin Collection Dates</title>
+  <title>Brue Bin App</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"/>
   <style>
@@ -75,7 +75,11 @@
     function init() {
       const lang = getLang();
 
-      // Update button labels based on lang
+      // Title bilingual
+      document.getElementById("title").textContent =
+        lang === "gd" ? "Cinn-latha Bhionaichean Brue" : "Brue Bin Collection Dates";
+
+      // Bin link labels
       document.getElementById("black-link").innerHTML =
         `<i class="fas fa-trash-alt"></i> ${lang === "gd" ? "Biona Dubh" : "Black Bin Schedule"}`;
       document.getElementById("blue-link").innerHTML =
@@ -83,14 +87,14 @@
       document.getElementById("green-link").innerHTML =
         `<i class="fas fa-wine-bottle"></i> ${lang === "gd" ? "Biona Uaine" : "Green Bin Schedule"}`;
 
-      // Update links with ?lang
+      // Links with lang param
       document.getElementById("black-link").href = "/api/black?lang=" + lang;
       document.getElementById("blue-link").href  = "/api/blue?lang=" + lang;
       document.getElementById("green-link").href = "/api/green?lang=" + lang;
 
-      // Toggle button text
+      // Toggle button shows current language (like Ness Bin App)
       const toggleBtn = document.getElementById("lang-toggle");
-      toggleBtn.textContent = lang === "gd" ? "English" : "Gàidhlig";
+      toggleBtn.textContent = lang === "gd" ? "Gàidhlig" : "English";
       toggleBtn.onclick = () => setLang(lang === "gd" ? "en" : "gd");
     }
     window.onload = init;
@@ -98,7 +102,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Brue Bin Collection Dates</h1>
+    <h1 id="title"></h1>
     <div class="link-box">
       <a id="black-link" class="black-bin"></a>
       <a id="blue-link" class="blue-bin"></a>
