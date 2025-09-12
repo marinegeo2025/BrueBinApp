@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler
 import requests
 from bs4 import BeautifulSoup
+from lib.failsafe import validate_bin_table   # 👈 use Python failsafe
 
 URL = "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/organic-food-and-garden-waste-and-mixed-recycling-blue-bin/thursday-collections"
 TITLE = "BLUE Bin Collection Dates for Brue"
@@ -19,6 +20,7 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(html.encode("utf-8"))
 
     def render(self):
+        # --- Fetch page ---
         try:
             r = requests.get(URL, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
             r.raise_for_status()
@@ -26,10 +28,18 @@ class handler(BaseHTTPRequestHandler):
             return f"<p>Error fetching data: {e}</p>"
 
         soup = BeautifulSoup(r.text, "html.parser")
+
+        # --- Run failsafe (Brue keyword only) ---
+        try:
+            validate_bin_table(soup, required_keyword="Brue", expected_months=[])
+        except Exception as e:
+            return f"<p>⚠️ Structure changed: {e}</p>"
+
         table = soup.find("table")
         if not table:
             return "<p>Could not find bin collection information on the page.</p>"
 
+        # --- Extract headers + Brue row ---
         headers = [th.get_text(strip=True) for th in table.find_all("th")]
         months = headers[1:]
 
@@ -40,16 +50,20 @@ class handler(BaseHTTPRequestHandler):
                 cells_for_brue = [td.get_text(strip=True) for td in tds[1:]]
                 break
 
+        # --- Build HTML sections ---
         if cells_for_brue:
             sections = []
             for month, dates_str in zip(months, cells_for_brue):
                 dates = [d.strip() for d in dates_str.split(",") if d.strip()]
-                lis = "\n".join(f'<li><i class="fas fa-calendar-day"></i> {d}</li>' for d in dates) or "<li>-</li>"
+                lis = "\n".join(
+                    f'<li><i class="fas fa-calendar-day"></i> {d}</li>' for d in dates
+                ) or "<li>-</li>"
                 sections.append(f"<h2>{month}</h2>\n<ul>{lis}</ul>")
             content = "\n".join(sections)
         else:
             content = "<p>No bin collection dates found. Try refreshing later.</p>"
 
+        # --- Return styled HTML ---
         return f"""<!DOCTYPE html>
 <html>
 <head>
