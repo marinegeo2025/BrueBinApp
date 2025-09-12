@@ -3,12 +3,14 @@ import requests
 from bs4 import BeautifulSoup
 
 URL = "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/glass-green-bin-collections/friday-collections"
-TITLE = "GREEN Bin Collection Dates for Brue"
+TITLE = "GREEN Bin Collection Dates"
 ICON  = "fa-wine-bottle"
 H1_COLOR = "#027a02"
 BODY_BG = "#f0f8ea"
 CARD_BG = "#fff"
 LI_BG   = "#dff0d8"
+
+TARGET_AREAS = ["Brue", "Barvas"]  # 👈 we’ll scrape both
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -33,22 +35,29 @@ class handler(BaseHTTPRequestHandler):
         headers = [th.get_text(strip=True) for th in table.find_all("th")]
         months = headers[1:]
 
-        cells_for_brue = []
-        for row in table.find_all("tr"):
-            tds = row.find_all("td")
-            if tds and "Brue" in tds[0].get_text(strip=True):
-                cells_for_brue = [td.get_text(strip=True) for td in tds[1:]]
-                break
+        sections_for_all = []
+        # Loop over both Brue and Barvas
+        for area in TARGET_AREAS:
+            cells = []
+            for row in table.find_all("tr"):
+                tds = row.find_all("td")
+                if tds and area in tds[0].get_text(strip=True):
+                    cells = [td.get_text(strip=True) for td in tds[1:]]
+                    break
 
-        if cells_for_brue:
-            sections = []
-            for month, dates_str in zip(months, cells_for_brue):
-                dates = [d.strip() for d in dates_str.split(",") if d.strip()]
-                lis = "\n".join(f'<li><i class="fas fa-calendar-day"></i> {d}</li>' for d in dates) or "<li>-</li>"
-                sections.append(f"<h2>{month}</h2>\n<ul>{lis}</ul>")
-            content = "\n".join(sections)
-        else:
-            content = "<p>No bin collection dates found. Try refreshing later.</p>"
+            if cells:
+                month_sections = []
+                for month, dates_str in zip(months, cells):
+                    dates = [d.strip() for d in dates_str.split(",") if d.strip()]
+                    lis = "\n".join(f'<li><i class="fas fa-calendar-day"></i> {d}</li>' for d in dates) or "<li>-</li>"
+                    month_sections.append(f"<h3>{month}</h3>\n<ul>{lis}</ul>")
+                section_html = f"<h2>{area}</h2>" + "\n".join(month_sections)
+            else:
+                section_html = f"<h2>{area}</h2><p>No collection dates found.</p>"
+
+            sections_for_all.append(section_html)
+
+        content = "\n<hr/>\n".join(sections_for_all)
 
         return f"""<!DOCTYPE html>
 <html>
@@ -62,20 +71,22 @@ class handler(BaseHTTPRequestHandler):
       font-family: 'Poppins', sans-serif;
       background: {BODY_BG};
       display: flex; justify-content: center; align-items: center;
-      height: 100vh; margin: 0;
+      min-height: 100vh; margin: 0; padding: 20px;
     }}
     .container {{
       background: {CARD_BG}; padding: 25px; border-radius: 12px;
       box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-      width: 350px; text-align: center;
+      width: 90%; max-width: 600px;
     }}
-    h1 {{ color: {H1_COLOR}; font-size: 24px; margin-bottom: 20px; }}
-    h2 {{ font-size: 20px; color: #444; margin-top: 15px; font-weight: 600; }}
+    h1 {{ color: {H1_COLOR}; font-size: 24px; margin-bottom: 20px; text-align:center; }}
+    h2 {{ font-size: 22px; color: #333; margin-top: 25px; }}
+    h3 {{ font-size: 18px; color: #444; margin-top: 12px; font-weight: 600; }}
     ul {{ list-style: none; padding: 0; }}
     li {{
-      background: {LI_BG}; margin: 8px 0; padding: 10px; border-radius: 6px;
-      font-size: 16px; color: #333; font-weight: 500;
+      background: {LI_BG}; margin: 6px 0; padding: 8px; border-radius: 6px;
+      font-size: 15px; color: #333; font-weight: 500;
     }}
+    hr {{ margin: 20px 0; border: none; border-top: 1px solid #ccc; }}
     .back {{ display:inline-block; margin-top:16px; text-decoration:none; color:#0066cc; }}
   </style>
 </head>
@@ -83,7 +94,9 @@ class handler(BaseHTTPRequestHandler):
   <div class="container">
     <h1><i class="fas {ICON}"></i> {TITLE}</h1>
     {content}
-    <a class="back" href="/">← Back</a>
+    <div style="text-align:center;">
+      <a class="back" href="/">← Back</a>
+    </div>
   </div>
 </body>
 </html>"""
