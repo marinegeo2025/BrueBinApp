@@ -71,7 +71,7 @@ class handler(BaseHTTPRequestHandler):
         else:
             content = f"<p>{t['noData']}</p>"
 
-        # --- Styled HTML with lang toggle ---
+        # --- Styled HTML (no toggle here, just back link with lang) ---
         return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -99,11 +99,6 @@ class handler(BaseHTTPRequestHandler):
       font-size: 16px; color: #333; font-weight: 500;
     }}
     .back {{ display:inline-block; margin-top:16px; text-decoration:none; color:#0066cc; }}
-    .lang-toggle {{
-      display:inline-block; margin-top:12px; padding:6px 12px;
-      border:none; border-radius:6px; background:#067f0b; color:#fff;
-      font-weight:bold; cursor:pointer;
-    }}
   </style>
 </head>
 <body>
@@ -111,10 +106,6 @@ class handler(BaseHTTPRequestHandler):
     <h1><i class="fas {ICON}"></i> {t['blackTitle']}</h1>
     {content}
     <a class="back" href="/?lang={lang}">{t['back']}</a>
-    <br/>
-    <a class="lang-toggle" href="?lang={'en' if lang=='gd' else 'gd'}">
-      {'English' if lang=='gd' else 'Gàidhlig'}
-    </a>
   </div>
 </body>
 </html>"""
