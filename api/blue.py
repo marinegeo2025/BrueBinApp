@@ -51,7 +51,6 @@ class handler(BaseHTTPRequestHandler):
         headers = [th.get_text(strip=True) for th in table.find_all("th")]
 months = headers[1:]
 
-# --- Find Brue row ---
 cells_for_brue = []
 for row in table.find_all("tr"):
     tds = row.find_all("td")
@@ -59,7 +58,6 @@ for row in table.find_all("tr"):
         cells_for_brue = [td.get_text(strip=True) for td in tds[1:]]
         break
 
-# --- Build month sections ---
 if cells_for_brue:
     sections = []
     for month, dates_str in zip(months, cells_for_brue):
