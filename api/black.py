@@ -29,9 +29,10 @@ class handler(BaseHTTPRequestHandler):
 
         soup = BeautifulSoup(r.text, "html.parser")
 
-        # --- Run failsafe for Brue ---
+        # --- Require both Brue and Barvas to exist ---
         try:
             validate_bin_table(soup, required_keyword="Brue", expected_months=[])
+            validate_bin_table(soup, required_keyword="Barvas", expected_months=[])
         except Exception as e:
             return f"<p>⚠️ Structure changed: {e}</p>"
 
