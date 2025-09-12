@@ -1,17 +1,18 @@
 from http.server import BaseHTTPRequestHandler
 import requests
 from bs4 import BeautifulSoup
-from lib.failsafe import validate_bin_table   # 👈 import Python failsafe
+from lib.failsafe import validate_bin_table
+from lib.translations import translations
+import urllib.parse
 
 URL = "https://www.cne-siar.gov.uk/bins-and-recycling/waste-recycling-collections-lewis-and-harris/glass-green-bin-collections/friday-collections"
-TITLE = "GREEN Bin Collection Dates"
 ICON  = "fa-wine-bottle"
 H1_COLOR = "#027a02"
 BODY_BG = "#f0f8ea"
 CARD_BG = "#fff"
 LI_BG   = "#dff0d8"
 
-TARGET_AREAS = ["Brue", "Barvas"]  # scrape both
+TARGET_AREAS = ["Brue", "Barvas"]
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -22,16 +23,22 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(html.encode("utf-8"))
 
     def render(self):
-        # Fetch
+        # --- Detect lang param (?lang=en or ?lang=gd, default gd) ---
+        query = urllib.parse.urlparse(self.path).query
+        params = dict(qc.split("=") for qc in query.split("&") if "=" in qc)
+        lang = params.get("lang", "gd")
+        t = translations["en"] if lang == "en" else translations["gd"]
+
+        # --- Fetch page ---
         try:
             r = requests.get(URL, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
             r.raise_for_status()
         except requests.RequestException as e:
-            return f"<p>Error fetching data: {e}</p>"
+            return f"<p>{t['errorFetching']} {e}</p>"
 
         soup = BeautifulSoup(r.text, "html.parser")
 
-        # 🚨 Run failsafe for both areas before parsing
+        # --- Require both Brue and Barvas before parsing ---
         try:
             validate_bin_table(soup, required_keyword="Brue", expected_months=[])
             validate_bin_table(soup, required_keyword="Barvas", expected_months=[])
@@ -40,7 +47,7 @@ class handler(BaseHTTPRequestHandler):
 
         table = soup.find("table")
         if not table:
-            return "<p>Could not find bin collection information on the page.</p>"
+            return f"<p>{t['noData']}</p>"
 
         headers = [th.get_text(strip=True) for th in table.find_all("th")]
         months = headers[1:]
@@ -64,17 +71,18 @@ class handler(BaseHTTPRequestHandler):
                     month_sections.append(f"<h3>{month}</h3>\n<ul>{lis}</ul>")
                 section_html = f"<h2>{area}</h2>" + "\n".join(month_sections)
             else:
-                section_html = f"<h2>{area}</h2><p>No collection dates found.</p>"
+                section_html = f"<h2>{area}</h2><p>{t['noData']}</p>"
 
             sections_for_all.append(section_html)
 
         content = "\n<hr/>\n".join(sections_for_all)
 
+        # --- Styled bilingual HTML ---
         return f"""<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>{TITLE}</title>
+  <title>{t['greenTitle']}</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
@@ -103,10 +111,10 @@ class handler(BaseHTTPRequestHandler):
 </head>
 <body>
   <div class="container">
-    <h1><i class="fas {ICON}"></i> {TITLE}</h1>
+    <h1><i class="fas {ICON}"></i> {t['greenTitle']}</h1>
     {content}
     <div style="text-align:center;">
-      <a class="back" href="/">← Back</a>
+      <a class="back" href="/?lang={lang}">{t['back']}</a>
     </div>
   </div>
 </body>
